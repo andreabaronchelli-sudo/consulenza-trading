@@ -36,18 +36,19 @@
       </ul>
     </div>
     <div id="chat">
-      <div class="chat bot">Benvenuto! Sono il tuo assistente per il trading online.<br>
-        Scrivi una domanda, ad esempio:<br>
-        <em>"Quali sono le principali classi di asset?"</em> oppure <em>"Mi fai un esempio pratico di investimento?"</em>
-      </div>
+      <div class="chat bot" id="intro-msg">Benvenuto! Prima di iniziare, come ti chiami?</div>
     </div>
     <form id="chatForm" class="input-area" autocomplete="off">
-      <input type="text" id="userInput" placeholder="Scrivi qui la tua domanda..." required />
+      <input type="text" id="userInput" placeholder="Scrivi qui il tuo nome..." required />
       <button type="submit">Invia</button>
     </form>
   </div>
 
   <script>
+    // FAQ bot con personalizzazione nome
+    let userName = "";
+    let isNameAsked = true;
+
     const faqs = [
       {
         question: [
@@ -147,11 +148,16 @@
       for (let faq of faqs) {
         for (let q of faq.question) {
           if (domanda.includes(q)) {
-            return faq.answer;
+            // Risposta personalizzata con nome se disponibile
+            return userName
+              ? `Ciao ${userName}, ${faq.answer}`
+              : faq.answer;
           }
         }
       }
-      return "Domanda non riconosciuta. Puoi chiedere su profilo di investimento, obiettivi, asset, esempi pratici, differenza tra investimento e scommessa, oppure scenari da 10k, 100k, 500k. Se vuoi approfondire, scrivimi la tua domanda!";
+      return userName
+        ? `Ciao ${userName}, domanda non riconosciuta. Puoi chiedere su profilo di investimento, obiettivi, asset, esempi pratici, differenza tra investimento e scommessa, oppure scenari da 10k, 100k, 500k. Se vuoi approfondire, scrivimi la tua domanda!`
+        : "Domanda non riconosciuta. Puoi chiedere su profilo di investimento, obiettivi, asset, esempi pratici, differenza tra investimento e scommessa, oppure scenari da 10k, 100k, 500k. Se vuoi approfondire, scrivimi la tua domanda!";
     }
 
     document.getElementById("chatForm").addEventListener("submit", function(e){
@@ -160,6 +166,19 @@
       const domanda = input.value.trim();
       if (!domanda) return;
       const chat = document.getElementById("chat");
+
+      if (isNameAsked) {
+        userName = domanda;
+        chat.innerHTML += `<div class="chat user">${domanda}</div>`;
+        chat.innerHTML += `<div class="chat bot">Ciao ${userName}, puoi chiedermi quello che vuoi sul mondo degli investimenti!<br>Per esempio: "Quali sono le principali classi di asset?"</div>`;
+        input.value = "";
+        input.placeholder = "Scrivi qui la tua domanda...";
+        isNameAsked = false;
+        // Cambia messaggio introduttivo
+        document.getElementById("intro-msg").style.display = "none";
+        return;
+      }
+
       chat.innerHTML += `<div class="chat user">${domanda}</div>`;
       const risposta = trovaRisposta(domanda);
       chat.innerHTML += `<div class="chat bot">${risposta}</div>`;
